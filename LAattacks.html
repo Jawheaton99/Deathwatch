@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deathwatch Dice Roller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        label, input, button {
+            margin: 5px;
+        }
+        input[type="number"] {
+            width: 80px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            transition-duration: 0.4s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        p#righteousFuryHits {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lightning Attack Damage Calculator</h1>
+    <label for="weaponSkill">Weapon Skill:</label>
+    <input type="number" id="weaponSkill" value="50">
+    <label for="weaponSkillModifier">Weapon Skill Modifier:</label>
+    <input type="number" id="weaponSkillModifier" value="0">
+    <br><br>
+    <label for="quantity">Number of Dice:</label>
+    <input type="number" id="quantity" value="2">
+    <label for="sides">Sides per Die:</label>
+    <input type="number" id="sides" value="10">
+    <label for="modifier">Modifier:</label>
+    <input type="number" id="modifier" value="16">
+    <label for="attacks">Number of Attacks:</label>
+    <input type="number" id="attacks" value="3">
+    <br><br>
+    <button onclick="calculateDamage()">Roll Dice</button>
+    <p id="hitOrMiss"></p>
+    <p id="locationHit"></p>
+    <p id="sureStrikeLocationHit"></p>
+    <p id="lightningResult"></p>
+    <p id="righteousFuryResult"></p>
+    <p id="righteousFuryHits" style="font-size: 20px; font-weight: bold;"></p>
+
+    <script>
+        // Function to generate a random integer between min and max (inclusive)
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+
+        // Recursive function to handle Righteous Fury chaining
+        function righteousFuryRoll(sides, effectiveWeaponSkill) {
+            var roll = getRandomInt(1, sides);
+            var righteousFuryHit = getRandomInt(1, 100) <= effectiveWeaponSkill;
+            if (righteousFuryHit) righteousFuryHits++;
+            return roll === sides ? roll + righteousFuryRoll(sides, effectiveWeaponSkill) : roll;
+        }
+
+        // Function to calculate the hit location based on the provided roll
+        function getHitLocation(roll) {
+            if (roll <= 10) return "Head";
+            if (roll <= 20) return "Right Arm";
+            if (roll <= 30) return "Left Arm";
+            if (roll <= 70) return "Body";
+            if (roll <= 85) return "Right Leg";
+            return "Left Leg";
+        }
+
+        var righteousFuryHits = 0;
+
+        // Function to calculate the total damage for the Lightning attack
+        function calculateDamage() {
+            var weaponSkill = parseInt(document.getElementById('weaponSkill').value);
+            var weaponSkillModifier = parseInt(document.getElementById('weaponSkillModifier').value);
+            var effectiveWeaponSkill = weaponSkill + weaponSkillModifier;
+            var d100Roll = getRandomInt(1, 100);
+            var reversedRoll = parseInt(d100Roll.toString().split('').reverse().join(''));
+
+            righteousFuryHits = 0;
+
+            // Check if the d100 roll is below or equal to the effective weapon skill
+            if (d100Roll <= effectiveWeaponSkill) {
+                document.getElementById('hitOrMiss').textContent = "Hit! Proceeding with Lightning attacks.";
+                document.getElementById('locationHit').textContent = "Location hit (Reversed Roll " + reversedRoll + "): " + getHitLocation(reversedRoll);
+                document.getElementById('sureStrikeLocationHit').textContent = "Location hit (Sure Strike Roll " + d100Roll + "): " + getHitLocation(d100Roll);
+
+                var quantity = parseInt(document.getElementById('quantity').value);
+                var sides = parseInt(document.getElementById('sides').value);
+                var modifier = parseInt(document.getElementById('modifier').value);
+                var numberOfAttacks = parseInt(document.getElementById('attacks').value);
+                var totalDamage = 0;
+                var righteousFuryDamage = 0;
+
+                // Loop for the specified number of attacks
+                for (var i = 0; i < numberOfAttacks; i++) {
+                    var attackDamage = 0;
+                    for (var j = 0; j < quantity; j++) {
+                        var roll = getRandomInt(1, sides);
+                        attackDamage += roll;
+                        if (roll === sides) righteousFuryDamage += righteousFuryRoll(sides, effectiveWeaponSkill);
+                    }
+                    totalDamage += attackDamage + modifier;
+                }
+
+                document.getElementById('lightningResult').textContent = "Total damage for Lightning attack: " + totalDamage;
+                document.getElementById('righteousFuryResult').textContent = "Total damage including Righteous Fury: " + (totalDamage + righteousFuryDamage);
+                document.getElementById('righteousFuryHits').textContent = righteousFuryHits > 0 ? "RIGHTEOUS FURY HITS! " + righteousFuryHits + " times" : "";
+            } else {
+                document.getElementById('hitOrMiss').textContent = "Missed! The attack did not hit.";
+                document.getElementById('locationHit').textContent = "";
+                document.getElementById('sureStrikeLocationHit').textContent = "";
+                document.getElementById('lightningResult').textContent = "";
+                document.getElementById('righteousFuryResult').textContent = "";
+                document.getElementById('righteousFuryHits').textContent = "";
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
